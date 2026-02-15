@@ -1,0 +1,18 @@
+# Dépendances (Lourd !)
+node_modules/
+web-dashboard/node_modules/
+
+# Build Next.js
+.next/
+web-dashboard/.next/
+
+# Environnement & Secrets (CRITIQUE !)
+.env
+.env.local
+.env.*
+web-dashboard/.env
+web-dashboard/.env.*
+
+# Logs & Système
+npm-debug.log*
+.DS_Store
