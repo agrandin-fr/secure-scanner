@@ -4,7 +4,7 @@ import { auth } from '@clerk/nextjs/server';
 import { prisma } from '@/lib/db';
 import { redis } from '@/lib/redis'; // Ton client Upstash HTTP
 import { Ratelimit } from '@upstash/ratelimit';
-import { Queue } from 'bullmq'; // ✅ IMPORT CRUCIAL
+import { ConnectionOptions, Queue } from 'bullmq'; // ✅ IMPORT CRUCIAL
 import { z } from 'zod';
 import IORedis from 'ioredis'; // ⚠️ Assure-toi d'avoir fait: npm install ioredis
 import { revalidatePath } from 'next/cache';
@@ -31,7 +31,7 @@ const connection = new IORedis(process.env.REDIS_URL!, {
 });
 
 // On passe cette connexion robuste à la Queue
-const scanQueue = new Queue('scan-queue', { connection });
+const scanQueue = new Queue('scan-queue', { connection: connection as unknown as ConnectionOptions });
 
 export async function submitScan(formData: FormData) {
   const { userId } = await auth(); // ✅ await est recommandé maintenant
