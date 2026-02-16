@@ -1,6 +1,6 @@
 'use server';
 
-import { auth } from '@clerk/nextjs/server';
+import { auth, currentUser } from '@clerk/nextjs/server'; // Ajoute currentUser
 import { prisma } from '@/lib/db';
 import { redis } from '@/lib/redis'; // Ton client Upstash HTTP
 import { Ratelimit } from '@upstash/ratelimit';
@@ -34,15 +34,17 @@ const connection = new IORedis(process.env.REDIS_URL!, {
 const scanQueue = new Queue('scan-queue', { connection: connection as unknown as ConnectionOptions });
 
 export async function submitScan(formData: FormData) {
-  const { userId } = await auth(); // ✅ await est recommandé maintenant
-  
-  if (!userId) {
+  const user = await currentUser();
+  const userId = user?.id;
+
+  if (!userId || !user) {
     throw new Error('You must be logged in to submit a scan.');
   }
 
+  const userEmail = user.emailAddresses[0]?.emailAddress || `no-email-${userId}@scanner.com`;
   const repoUrl = formData.get('repoUrl') as string;
 
-  const urlSchema = z.string().url().regex(GITHUB_URL_REGEX, {
+  const urlSchema = z.url().regex(GITHUB_URL_REGEX, {
     message: "Invalid GitHub repository URL",
   });
 
@@ -68,10 +70,10 @@ export async function submitScan(formData: FormData) {
     // 1. Upsert user (au cas où il n'existe pas encore en DB)
     await prisma.user.upsert({
       where: { id: userId },
-      update: {},
+      update: { email: userEmail },
       create: { 
         id: userId,
-        email: "unknown@temp.com" // Placeholder car auth() ne donne pas l'email directement
+        email: userEmail // ✅ On utilise le vrai email ici      
       },
     });
 
