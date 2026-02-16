@@ -50,7 +50,7 @@ export async function submitScan(formData: FormData) {
 
   if (!validation.success) {
     // On renvoie un objet simple pour que le front puisse l'afficher sans crasher
-    return { success: false, error: validation.error.errors[0].message };
+    return { success: false, error: validation.error.issues[0].message };
   }
 
   // Rate Limiting (Actif uniquement en PRODUCTION)
